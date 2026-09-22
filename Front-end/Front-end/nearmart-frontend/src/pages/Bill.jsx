@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -6,11 +7,29 @@ import api from "../services/api";
 function Bill() {
 
     const { orderId } = useParams();
+=======
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+
+import api from "../services/api";
+
+import {
+    createPaymentOrder,
+    verifyPayment
+} from "../services/paymentService";
+
+
+function Bill() {
+
+    const { orderId } = useParams();
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
     const navigate = useNavigate();
 
     const [bill, setBill] = useState(null);
 
     const [loading, setLoading] = useState(true);
+<<<<<<< HEAD
     const [error, setError] = useState("");
 
     // Payment states
@@ -18,6 +37,16 @@ function Bill() {
     const [paymentMethod, setPaymentMethod] = useState("upi");
     const [paymentProcessing, setPaymentProcessing] = useState(false);
     const [paymentSuccess, setPaymentSuccess] = useState(false);
+=======
+
+    const [error, setError] = useState("");
+
+    const [paymentProcessing, setPaymentProcessing] =
+        useState(false);
+
+    const [paymentSuccess, setPaymentSuccess] =
+        useState(false);
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
 
 
     // ==========================================
@@ -36,6 +65,10 @@ function Bill() {
         try {
 
             setLoading(true);
+<<<<<<< HEAD
+=======
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
             setError("");
 
             console.log(
@@ -43,17 +76,33 @@ function Bill() {
                 orderId
             );
 
+<<<<<<< HEAD
             const response = await api.get(
                 `/bills/order/${orderId}`
             );
+=======
+
+            const response =
+                await api.get(
+                    `/bills/order/${orderId}`
+                );
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
 
             console.log(
                 "Bill received:",
                 response.data
             );
 
+<<<<<<< HEAD
             setBill(response.data);
 
+=======
+
+            setBill(response.data);
+
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
         } catch (error) {
 
             console.error(
@@ -61,12 +110,23 @@ function Bill() {
                 error
             );
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
             console.error(
                 "Backend Response:",
                 error.response?.data
             );
 
+<<<<<<< HEAD
             if (error.response?.data?.message) {
+=======
+
+            if (
+                error.response?.data?.message
+            ) {
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
 
                 setError(
                     error.response.data.message
@@ -77,6 +137,7 @@ function Bill() {
                 setError(
                     "Unable to load bill."
                 );
+<<<<<<< HEAD
 
             }
 
@@ -86,10 +147,20 @@ function Bill() {
 
         }
 
+=======
+            }
+
+
+        } finally {
+
+            setLoading(false);
+        }
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
     };
 
 
     // ==========================================
+<<<<<<< HEAD
     // OPEN PAYMENT
     // ==========================================
 
@@ -119,6 +190,419 @@ function Bill() {
 
         }, 2000);
 
+=======
+    // RAZORPAY PAYMENT
+    // ==========================================
+
+    const handlePayment = async () => {
+
+        try {
+
+            setPaymentProcessing(true);
+
+
+            // ======================================
+            // GET LOGGED-IN USER
+            // ======================================
+
+            const userId =
+                localStorage.getItem("userId");
+
+
+            if (!userId) {
+
+                alert(
+                    "Please login before making payment."
+                );
+
+                setPaymentProcessing(false);
+
+                navigate("/login");
+
+                return;
+            }
+
+
+            // ======================================
+            // CHECK BILL
+            // ======================================
+
+            if (!bill) {
+
+                alert(
+                    "Bill information is not available."
+                );
+
+                setPaymentProcessing(false);
+
+                return;
+            }
+
+
+            // ======================================
+            // CHECK AMOUNT
+            // ======================================
+
+            const amount =
+                Number(bill.totalPrice);
+
+
+            if (
+                !amount ||
+                amount <= 0
+            ) {
+
+                alert(
+                    "Invalid payment amount."
+                );
+
+                setPaymentProcessing(false);
+
+                return;
+            }
+
+
+            // ======================================
+            // CHECK RAZORPAY SCRIPT
+            // ======================================
+
+            if (!window.Razorpay) {
+
+                alert(
+                    "Razorpay Checkout is not loaded. Please refresh the page."
+                );
+
+                console.error(
+                    "window.Razorpay is undefined"
+                );
+
+                setPaymentProcessing(false);
+
+                return;
+            }
+
+
+            // ======================================
+            // CREATE RAZORPAY ORDER
+            // ======================================
+
+            const paymentOrder =
+                await createPaymentOrder({
+
+                    orderId:
+                        Number(bill.orderId),
+
+                    userId:
+                        Number(userId),
+
+                    amount:
+                        amount
+                });
+
+
+            console.log(
+                "Payment Order Created:",
+                paymentOrder
+            );
+
+
+            // ======================================
+            // VALIDATE PAYMENT ORDER
+            // ======================================
+
+            if (
+                !paymentOrder ||
+                !paymentOrder.razorpayOrderId
+            ) {
+
+                alert(
+                    "Unable to create Razorpay order."
+                );
+
+                setPaymentProcessing(false);
+
+                return;
+            }
+
+
+            // ======================================
+            // RAZORPAY OPTIONS
+            // ======================================
+
+            const options = {
+
+                // Razorpay Key ID
+                key:
+                    paymentOrder.key,
+
+
+                // Amount in paise
+                amount:
+                    Math.round(
+                        Number(
+                            paymentOrder.amount
+                        ) * 100
+                    ),
+
+
+                currency:
+                    paymentOrder.currency ||
+                    "INR",
+
+
+                name:
+                    "NearMart",
+
+
+                description:
+                    `Payment for Order #${bill.orderId}`,
+
+
+                // Razorpay Order ID
+                order_id:
+                    paymentOrder.razorpayOrderId,
+
+
+                // ==================================
+                // PAYMENT SUCCESS
+                // ==================================
+
+                handler: async function (
+                    response
+                ) {
+
+                    console.log(
+                        "Razorpay Payment Response:",
+                        response
+                    );
+
+
+                    try {
+
+                        // ==============================
+                        // VERIFY PAYMENT WITH BACKEND
+                        // ==============================
+
+                        const verificationResult =
+                            await verifyPayment({
+
+                                razorpayOrderId:
+                                    response
+                                        .razorpay_order_id,
+
+                                razorpayPaymentId:
+                                    response
+                                        .razorpay_payment_id,
+
+                                razorpaySignature:
+                                    response
+                                        .razorpay_signature
+                            });
+
+
+                        console.log(
+                            "Payment Verification Result:",
+                            verificationResult
+                        );
+
+
+                        // ==============================
+                        // CHECK VERIFICATION STATUS
+                        // ==============================
+
+                        if (
+                            verificationResult
+                                .status ===
+                            "SUCCESS"
+                        ) {
+
+                            setPaymentSuccess(
+                                true
+                            );
+
+
+                            alert(
+                                "Payment successful!"
+                            );
+
+
+                        } else {
+
+                            alert(
+                                "Payment could not be verified."
+                            );
+                        }
+
+
+                    } catch (error) {
+
+                        console.error(
+                            "Payment Verification Failed:",
+                            error
+                        );
+
+
+                        console.error(
+                            "Backend Response:",
+                            error.response?.data
+                        );
+
+
+                        alert(
+                            error.response
+                                ?.data?.message ||
+                            "Payment verification failed."
+                        );
+
+
+                    } finally {
+
+                        setPaymentProcessing(
+                            false
+                        );
+                    }
+                },
+
+
+                // ==================================
+                // CUSTOMER INFORMATION
+                // ==================================
+
+                prefill: {
+
+                    name:
+                        bill.customerName ||
+                        ""
+
+                },
+
+
+                // ==================================
+                // EXTRA INFORMATION
+                // ==================================
+
+                notes: {
+
+                    orderId:
+                        String(
+                            bill.orderId
+                        ),
+
+                    shop:
+                        bill.shopName ||
+                        "NearMart"
+                },
+
+
+                // ==================================
+                // CUSTOMER CLOSES PAYMENT WINDOW
+                // ==================================
+
+                modal: {
+
+                    ondismiss: function () {
+
+                        console.log(
+                            "Razorpay Checkout Closed"
+                        );
+
+                        setPaymentProcessing(
+                            false
+                        );
+                    }
+                }
+            };
+
+
+            // ======================================
+            // CREATE RAZORPAY CHECKOUT
+            // ======================================
+
+            const razorpay =
+                new window.Razorpay(
+                    options
+                );
+
+
+            // ======================================
+            // PAYMENT FAILED
+            // ======================================
+
+            razorpay.on(
+                "payment.failed",
+                function (response) {
+
+                    console.error(
+                        "Razorpay Payment Failed:",
+                        response.error
+                    );
+
+
+                    alert(
+                        response.error
+                            ?.description ||
+                        "Payment failed."
+                    );
+
+
+                    setPaymentProcessing(
+                        false
+                    );
+                }
+            );
+
+
+            // ======================================
+            // OPEN RAZORPAY CHECKOUT
+            // ======================================
+
+            razorpay.open();
+
+
+        } catch (error) {
+
+            console.error(
+                "Unable to Start Payment:",
+                error
+            );
+
+
+            console.error(
+                "Backend Response:",
+                error.response?.data
+            );
+
+
+            if (
+                error.response?.data?.message
+            ) {
+
+                alert(
+                    error.response.data.message
+                );
+
+            } else if (
+                typeof error.response?.data ===
+                "string"
+            ) {
+
+                alert(
+                    error.response.data
+                );
+
+            } else {
+
+                alert(
+                    "Unable to start payment. Check browser console."
+                );
+            }
+
+
+            setPaymentProcessing(
+                false
+            );
+        }
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
     };
 
 
@@ -145,9 +629,13 @@ function Bill() {
                 </div>
 
             </main>
+<<<<<<< HEAD
 
         );
 
+=======
+        );
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
     }
 
 
@@ -182,9 +670,13 @@ function Bill() {
                 </div>
 
             </main>
+<<<<<<< HEAD
 
         );
 
+=======
+        );
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
     }
 
 
@@ -215,9 +707,13 @@ function Bill() {
                 </div>
 
             </main>
+<<<<<<< HEAD
 
         );
 
+=======
+        );
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
     }
 
 
@@ -259,6 +755,7 @@ function Bill() {
 
                 <div className="bill-info">
 
+<<<<<<< HEAD
                     <div>
 
                         <p>
@@ -273,6 +770,30 @@ function Bill() {
                                 Order ID:
                             </strong>{" "}
                             {bill.orderId}
+=======
+
+                    <div>
+
+                        <p>
+
+                            <strong>
+                                Bill ID:
+                            </strong>{" "}
+
+                            {bill.billId}
+
+                        </p>
+
+
+                        <p>
+
+                            <strong>
+                                Order ID:
+                            </strong>{" "}
+
+                            {bill.orderId}
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                         </p>
 
                     </div>
@@ -281,6 +802,7 @@ function Bill() {
                     <div>
 
                         <p>
+<<<<<<< HEAD
                             <strong>
                                 Customer:
                             </strong>{" "}
@@ -292,6 +814,26 @@ function Bill() {
                                 Shop:
                             </strong>{" "}
                             {bill.shopName}
+=======
+
+                            <strong>
+                                Customer:
+                            </strong>{" "}
+
+                            {bill.customerName}
+
+                        </p>
+
+
+                        <p>
+
+                            <strong>
+                                Shop:
+                            </strong>{" "}
+
+                            {bill.shopName}
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                         </p>
 
                     </div>
@@ -300,6 +842,10 @@ function Bill() {
                     <div>
 
                         <p>
+<<<<<<< HEAD
+=======
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                             <strong>
                                 Date:
                             </strong>{" "}
@@ -315,6 +861,10 @@ function Bill() {
 
                     </div>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                 </div>
 
 
@@ -328,6 +878,10 @@ function Bill() {
                         Order Details
                     </h2>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                     <table>
 
                         <thead>
@@ -365,6 +919,7 @@ function Bill() {
                                     ) => (
 
                                         <tr
+<<<<<<< HEAD
                                             key={index}
                                         >
 
@@ -396,6 +951,62 @@ function Bill() {
                                                         item.subTotal
                                                     ).toFixed(2)
                                                 }
+=======
+                                            key={
+                                                index
+                                            }
+                                        >
+
+                                            <td>
+
+                                                {
+                                                    item
+                                                        .productName
+                                                }
+
+                                            </td>
+
+
+                                            <td>
+
+                                                {
+                                                    item
+                                                        .quantity
+                                                }
+
+                                            </td>
+
+
+                                            <td>
+
+                                                ₹
+                                                {
+                                                    Number(
+                                                        item
+                                                            .price
+                                                    )
+                                                        .toFixed(
+                                                            2
+                                                        )
+                                                }
+
+                                            </td>
+
+
+                                            <td>
+
+                                                ₹
+                                                {
+                                                    Number(
+                                                        item
+                                                            .subTotal
+                                                    )
+                                                        .toFixed(
+                                                            2
+                                                        )
+                                                }
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                                             </td>
 
                                         </tr>
@@ -422,12 +1033,20 @@ function Bill() {
                     </span>
 
                     <strong>
+<<<<<<< HEAD
+=======
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                         ₹
                         {
                             Number(
                                 bill.totalPrice
                             ).toFixed(2)
                         }
+<<<<<<< HEAD
+=======
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                     </strong>
 
                 </div>
@@ -439,6 +1058,10 @@ function Bill() {
 
                 <div className="bill-actions">
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                     {/* PRINT BILL */}
 
                     <button
@@ -446,15 +1069,28 @@ function Bill() {
                             window.print()
                         }
                     >
+<<<<<<< HEAD
                         Print Bill
                     </button>
 
 
                     {/* PAYMENT */}
+=======
+
+                        Print Bill
+
+                    </button>
+
+
+                    {/* ==================================
+                        RAZORPAY BUTTON
+                    ================================== */}
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
 
                     {!paymentSuccess && (
 
                         <button
+<<<<<<< HEAD
                             className="payment-btn"
                             onClick={handlePayment}
                         >
@@ -464,6 +1100,31 @@ function Bill() {
                                     bill.totalPrice
                                 ).toFixed(2)
                             }
+=======
+
+                            className="payment-btn"
+
+                            onClick={
+                                handlePayment
+                            }
+
+                            disabled={
+                                paymentProcessing
+                            }
+
+                        >
+
+                            {
+                                paymentProcessing
+
+                                    ? "Processing..."
+
+                                    : `Pay ₹${Number(
+                                        bill.totalPrice
+                                    ).toFixed(2)}`
+                            }
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                         </button>
 
                     )}
@@ -476,13 +1137,23 @@ function Bill() {
                             navigate("/")
                         }
                     >
+<<<<<<< HEAD
                         Back to Home
                     </button>
 
+=======
+
+                        Back to Home
+
+                    </button>
+
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                 </div>
 
 
                 {/* ==================================
+<<<<<<< HEAD
                     PAYMENT MODAL
                 ================================== */}
 
@@ -745,6 +1416,8 @@ function Bill() {
 
 
                 {/* ==================================
+=======
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                     PAYMENT SUCCESS
                 ================================== */}
 
@@ -756,10 +1429,15 @@ function Bill() {
                             ✓
                         </div>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                         <h2>
                             Payment Successful
                         </h2>
 
+<<<<<<< HEAD
                         <p>
                             Your payment has been processed successfully.
                         </p>
@@ -768,18 +1446,67 @@ function Bill() {
                             Order ID: #{bill.orderId}
                         </p>
 
+=======
+
+                        <p>
+                            Your payment has been
+                            verified successfully.
+                        </p>
+
+
+                        <p>
+
+                            Order ID: #
+                            {bill.orderId}
+
+                        </p>
+
+
+                        <p>
+
+                            Amount Paid: ₹
+                            {
+                                Number(
+                                    bill.totalPrice
+                                ).toFixed(2)
+                            }
+
+                        </p>
+
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                         <button
                             onClick={() =>
                                 window.print()
                             }
                         >
+<<<<<<< HEAD
                             Print Paid Bill
+=======
+
+                            Print Paid Bill
+
+                        </button>
+
+
+                        <button
+                            onClick={() =>
+                                navigate(
+                                    "/orders"
+                                )
+                            }
+                        >
+
+                            My Orders
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                         </button>
 
                     </div>
 
                 )}
 
+<<<<<<< HEAD
             </div>
 
         </main>
@@ -790,3 +1517,14 @@ function Bill() {
 
 export default Bill;
 
+=======
+
+            </div>
+
+        </main>
+    );
+}
+
+
+export default Bill;
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)

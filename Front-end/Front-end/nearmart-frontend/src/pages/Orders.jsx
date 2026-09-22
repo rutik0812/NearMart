@@ -1,7 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+<<<<<<< HEAD
 import api from "../services/api";
 
+=======
+
+import api from "../services/api";
+
+import {
+    createPaymentOrder,
+    verifyPayment
+} from "../services/paymentService";
+
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
 function Orders() {
 
     const navigate = useNavigate();
@@ -10,15 +22,25 @@ function Orders() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+<<<<<<< HEAD
+=======
+    // Keeps track of which order is currently being paid
+    const [payingOrderId, setPayingOrderId] = useState(null);
+
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
 
     // ================================
     // FETCH MY ORDERS
     // ================================
 
     useEffect(() => {
+<<<<<<< HEAD
 
         fetchOrders();
 
+=======
+        fetchOrders();
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
     }, []);
 
 
@@ -29,9 +51,12 @@ function Orders() {
             setLoading(true);
             setError("");
 
+<<<<<<< HEAD
             console.log("Fetching logged-in customer orders...");
 
             // JWT identifies the customer
+=======
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
             const response = await api.get(
                 "/orders/my-orders"
             );
@@ -50,11 +75,14 @@ function Orders() {
                 error
             );
 
+<<<<<<< HEAD
             console.error(
                 "Backend response:",
                 error.response?.data
             );
 
+=======
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
             if (error.response?.status === 401) {
 
                 setError(
@@ -80,15 +108,232 @@ function Orders() {
                 setError(
                     "Unable to load your orders."
                 );
+<<<<<<< HEAD
 
+=======
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
             }
 
         } finally {
 
             setLoading(false);
+<<<<<<< HEAD
 
         }
 
+=======
+        }
+    };
+
+
+    // ================================
+    // RAZORPAY PAYMENT
+    // ================================
+
+    const handlePayment = async (order) => {
+
+        try {
+
+            setPayingOrderId(order.orderId);
+
+            /*
+             * IMPORTANT:
+             * Change "userId" below according to whatever
+             * key you use when saving the logged-in user.
+             */
+            const userId =
+                localStorage.getItem("userId");
+
+            if (!userId) {
+
+                alert(
+                    "User information not found. Please login again."
+                );
+
+                setPayingOrderId(null);
+
+                navigate("/login");
+                return;
+            }
+
+
+            // --------------------------------
+            // STEP 1: Create Razorpay Order
+            // --------------------------------
+
+            const paymentOrder =
+                await createPaymentOrder({
+
+                    orderId: order.orderId,
+
+                    userId: Number(userId),
+
+                    amount: Number(
+                        order.totalPrice
+                    )
+                });
+
+
+            console.log(
+                "Payment order created:",
+                paymentOrder
+            );
+
+
+            // --------------------------------
+            // STEP 2: Configure Razorpay
+            // --------------------------------
+
+            const options = {
+
+                key: paymentOrder.key,
+
+                amount: Math.round(
+                    Number(paymentOrder.amount) * 100
+                ),
+
+                currency:
+                    paymentOrder.currency,
+
+                name: "NearMart",
+
+                description:
+                    `Payment for Order #${order.orderId}`,
+
+                order_id:
+                    paymentOrder.razorpayOrderId,
+
+
+                // --------------------------------
+                // STEP 3: Payment successful
+                // --------------------------------
+
+                handler: async function (
+                    response
+                ) {
+
+                    console.log(
+                        "Razorpay response:",
+                        response
+                    );
+
+
+                    try {
+
+                        // --------------------------------
+                        // STEP 4: Verify payment
+                        // --------------------------------
+
+                        const verificationResult =
+                            await verifyPayment({
+
+                                razorpayOrderId:
+                                    response.razorpay_order_id,
+
+                                razorpayPaymentId:
+                                    response.razorpay_payment_id,
+
+                                razorpaySignature:
+                                    response.razorpay_signature
+                            });
+
+
+                        console.log(
+                            "Payment verified:",
+                            verificationResult
+                        );
+
+
+                        if (
+                            verificationResult.status
+                            === "SUCCESS"
+                        ) {
+
+                            alert(
+                                "Payment successful!"
+                            );
+
+                            // Reload orders
+                            await fetchOrders();
+
+                        }
+
+                    } catch (error) {
+
+                        console.error(
+                            "Payment verification failed:",
+                            error
+                        );
+
+                        alert(
+                            "Payment verification failed."
+                        );
+
+                    } finally {
+
+                        setPayingOrderId(null);
+                    }
+                },
+
+
+                theme: {}
+            };
+
+
+            // --------------------------------
+            // STEP 5: Open Razorpay
+            // --------------------------------
+
+            const razorpay =
+                new window.Razorpay(options);
+
+
+            // --------------------------------
+            // PAYMENT FAILURE
+            // --------------------------------
+
+            razorpay.on(
+                "payment.failed",
+                function (response) {
+
+                    console.error(
+                        "Payment failed:",
+                        response.error
+                    );
+
+                    alert(
+                        response.error?.description
+                        || "Payment failed."
+                    );
+
+                    setPayingOrderId(null);
+                }
+            );
+
+
+            razorpay.open();
+
+
+        } catch (error) {
+
+            console.error(
+                "Unable to start payment:",
+                error
+            );
+
+            console.error(
+                "Backend response:",
+                error.response?.data
+            );
+
+            alert(
+                error.response?.data?.message
+                || "Unable to start payment."
+            );
+
+            setPayingOrderId(null);
+        }
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
     };
 
 
@@ -113,9 +358,13 @@ function Orders() {
                 </div>
 
             </main>
+<<<<<<< HEAD
 
         );
 
+=======
+        );
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
     }
 
 
@@ -135,6 +384,7 @@ function Orders() {
 
                     <div className="orders-error">
 
+<<<<<<< HEAD
                         <p>
                             {error}
                         </p>
@@ -142,6 +392,15 @@ function Orders() {
                         <button
                             onClick={() =>
                                 navigate("/customer-dashboard")
+=======
+                        <p>{error}</p>
+
+                        <button
+                            onClick={() =>
+                                navigate(
+                                    "/customer-dashboard"
+                                )
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                             }
                         >
                             Back to Dashboard
@@ -152,9 +411,13 @@ function Orders() {
                 </div>
 
             </main>
+<<<<<<< HEAD
 
         );
 
+=======
+        );
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
     }
 
 
@@ -174,12 +437,20 @@ function Orders() {
 
                     <div className="no-orders">
 
+<<<<<<< HEAD
                         <h2>
                             No Orders Yet
                         </h2>
 
                         <p>
                             You haven't placed any orders yet.
+=======
+                        <h2>No Orders Yet</h2>
+
+                        <p>
+                            You haven't placed any
+                            orders yet.
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                         </p>
 
                         <button
@@ -195,9 +466,13 @@ function Orders() {
                 </div>
 
             </main>
+<<<<<<< HEAD
 
         );
 
+=======
+        );
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
     }
 
 
@@ -215,9 +490,13 @@ function Orders() {
 
                     <div>
 
+<<<<<<< HEAD
                         <h1>
                             My Orders
                         </h1>
+=======
+                        <h1>My Orders</h1>
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
 
                         <p>
                             View your previous orders
@@ -227,7 +506,13 @@ function Orders() {
 
                     <button
                         onClick={() =>
+<<<<<<< HEAD
                             navigate("/customer-dashboard")
+=======
+                            navigate(
+                                "/customer-dashboard"
+                            )
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                         }
                     >
                         Dashboard
@@ -273,7 +558,10 @@ function Orders() {
                                     {order.shopName || "N/A"}
                                 </p>
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                                 <p>
                                     <strong>
                                         Total:
@@ -284,7 +572,10 @@ function Orders() {
                                     ).toFixed(2)}
                                 </p>
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                                 <p>
                                     <strong>
                                         Date:
@@ -293,13 +584,18 @@ function Orders() {
                                         ? new Date(
                                             order.createdAt
                                         ).toLocaleString()
+<<<<<<< HEAD
                                         : "N/A"
                                     }
+=======
+                                        : "N/A"}
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                                 </p>
 
                             </div>
 
 
+<<<<<<< HEAD
                             <button
                                 className="view-order-btn"
                                 onClick={() =>
@@ -313,6 +609,48 @@ function Orders() {
 
                         </div>
 
+=======
+                            <div className="order-actions">
+
+                                <button
+                                    className="view-order-btn"
+                                    onClick={() =>
+                                        navigate(
+                                            `/bill/order/${order.orderId}`
+                                        )
+                                    }
+                                >
+                                    View Bill
+                                </button>
+
+
+                                {/* PAY NOW BUTTON */}
+
+                                <button
+                                    className="pay-now-btn"
+                                    disabled={
+                                        payingOrderId
+                                        === order.orderId
+                                    }
+                                    onClick={() =>
+                                        handlePayment(order)
+                                    }
+                                >
+
+                                    {payingOrderId
+                                        === order.orderId
+                                        ? "Processing..."
+                                        : `Pay ₹${Number(
+                                            order.totalPrice || 0
+                                        ).toFixed(2)}`
+                                    }
+
+                                </button>
+
+                            </div>
+
+                        </div>
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
                     ))}
 
                 </div>
@@ -320,9 +658,13 @@ function Orders() {
             </div>
 
         </main>
+<<<<<<< HEAD
 
     );
 
+=======
+    );
+>>>>>>> eae9d6c (Add Razorpay payment service and frontend integration)
 }
 
 export default Orders;
